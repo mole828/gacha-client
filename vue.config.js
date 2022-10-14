@@ -1,4 +1,32 @@
 const { defineConfig } = require('@vue/cli-service')
+
+let host = 'http://d.hetaobuy.com:7070';  host = 'http://localhost:7001';
+
 module.exports = defineConfig({
-  transpileDependencies: true
-})
+  transpileDependencies: true, 
+  devServer: {
+    proxy: {
+      '/0': {
+        target: 'http://d.hetaobuy.com:8000',
+        changeOrigin: true,
+        pathRewrite: {
+          '/0': '/api',
+        }
+      },
+      '/api': {
+        target: host,
+        changeOrigin: true,
+      },
+      '/socket.io': {
+        target: host,
+        ws: true,
+        changeOrigin: true,
+      },
+    },
+  }
+});
+
+/**
+ * TODO:
+ * 
+ */
