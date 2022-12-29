@@ -1,6 +1,6 @@
 const { defineConfig } = require('@vue/cli-service')
 
-let host = 'http://d.hetaobuy.com:7070';  host = 'http://localhost:7001';
+let host = 'http://d.hetaobuy.com:7070';  // host = 'http://localhost:8888';
 
 module.exports = defineConfig({
   transpileDependencies: true, 

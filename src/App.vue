@@ -17,6 +17,7 @@
     <button @click="client.seize()">seize</button><br/>
     <button @click="client.fire()">fire</button>
     <button @click="client.crit()">crit</button>
+    <button @click="client.loopOn()">loopOn</button>
     <br>
     <button @click="client.machineBallPass(this.roomId) ">ballpass</button>
     <button @click="client.win(this.roomId, 'black')">win</button>
@@ -53,8 +54,8 @@ const headers = {
   appid: 'gacha',
   fakeuseragent: 'webview',
 };
-const token = '25c553de-a3fc-4e5e-bf1b-3daa26f9ca9d';
-const p = '2404224c06e127c251d29e0d0c9d56159a5cbc19f6d60b4049dbb12c3961437932c6ff48359a17fcc1bbd4d542d12bdda28e21ab35c9614eaf483938260b3c70e088f95ffe7716580406c84038c9927a33a8f8d6bca8f41f49b3728983cb50f742e9097f6d8759d5ba693bba768e5fd86d8297e90d9b3936cbe3d9ea68713a90b57fe1067aae1624b830875a945928ba519f0c7eab61abe34ca0eb6ada8722bacc9c881ecc103a6782f2d8a4731a8f9d86bc051357a83a9f9c5785b4d7a0eb2dd06a1e24c41f377c7c5b7f4fea59fc671a544125ba426da458c68d71dd4fd6fafe38f6f8561b348491a2a17bfb7533a3cd5f1f7766174f5ca2d4354d7c93af98540432a890570dc508a36bb7fe6709388431899970c21866876f42cef17a7b5f533a97982c85de7502b367c31e0c3be7939503afdf607c918381f8dd2ffd71ac';
+const token = '2590ab9c-80e3-48eb-b713-75c205106e67';
+const p = 'af36a8754d9a9f8a0622a81fb88d733274b6ca04ad748170b6c26ef88b56d790f1836134d1da27edc84894ab8fb0401d76bd8482adf21f1c56861b0843eaef7e0676e3dfa803a6efcb66e96bd9fac0fb5723a67168760687f7a8340846d77d088755997f609822befc9a89933f1e423e16b3808d7f8af8161dbb90752fdc440b5435b90617e89e088a710785016919593c45659d6afca8b37be1e3bb85c99c91d6d5c17188d092a13985f6cdb9f865b8a27b367472e4c537ba693bba768e5fd87aef151e7b5a651eeed0cd4cb03d1024f99a9346596590f8cc9c881ecc103a67f276b10f8215dbed90e740dc6f951cd9c4f2352808f55ff8374cdf4138a75f9b51c3c4b8f68d1f7dd8c64e3c72385ba2b864307abb234cf7a24d7104d94477abaa8257a2d126c772d4360ec4dcb58fcdbae48cd1f3182b0ad9c95639ba9601db';
 
 class GameClient {
   static async initRooms(callback){
@@ -78,7 +79,7 @@ class GameClient {
     })
   }
 
-  
+  beforeUpdate = ()=>{}
 
   roomInfo;
   constructor(){
@@ -103,15 +104,18 @@ class GameClient {
       console.log('connect', e, );
     });
 
+    
     this.socket.on('user-room-updated', (data)=>{
       console.log('on(user-room-updated)', data);
       const {realTimeInfo} = data;
       this.roomInfo = realTimeInfo;
+      this.beforeUpdate(realTimeInfo.status)
     })
 
     this.socket.on('SG_STATUS', (data)=>{ // 私聊状态变化
       console.log('on(SG_STATUS)', data);
       this.sg = data;
+      this.beforeUpdate(data.gameStatus);
     })
 
     this.socket.on("user-live-commenting", (data)=>{
@@ -193,6 +197,30 @@ class GameClient {
       this.socket.emit('G_CRIT', req, (res)=>{
         console.log('G_CRIT(', req, ')=>', res);
       })
+    }
+  }
+  loopOn() {
+    console.log('hooked')
+    let winCounter = 0;
+    this.beforeUpdate = (status) => {
+      console.log('beforeUpdate')
+      console.log(status)
+      if(status==="READY"){
+        setTimeout(()=>{
+          this.seize()
+          setTimeout(()=>{
+            this.fire()
+          }, 500)
+        }, 300)
+      } 
+      if(status==="WIN") {
+        winCounter += 1;
+        console.log( {winCounter} );
+        setTimeout(()=>{
+          this.cancel()
+        },400)
+      }
+      
     }
   }
   restart(){
